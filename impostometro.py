@@ -3,6 +3,11 @@ import mediapipe as mp
 import tkinter as tk
 from PIL import Image, ImageTk
 from deepface import DeepFace
+import time
+
+ultimo_tempo_analisado = 0
+intervalo_entre_analises = 5
+
 
 # Inicialização da janela
 janela = tk.Tk()
@@ -77,7 +82,7 @@ desenho_rosto = mp.solutions.drawing_utils
 ultimo_frame = None
 
 def atualizar_video():
-    global ultimo_frame
+    global ultimo_frame, ultimo_tempo_analisado
     ret, frame = webcam.read()
     if not ret:
         return
@@ -95,25 +100,27 @@ def atualizar_video():
             delimitador = int(caixa.xmin * w), int(caixa.ymin * h), int(caixa.width * w), int(caixa.height * h)
             cv2.putText(frame, f'{int(deteccao.score[0] * 100)}%', (delimitador[0], delimitador[1] - 20),
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-            if ultimo_frame is not None:
-                try:
-                    frame_rgb = cv2.cvtColor(ultimo_frame, cv2.COLOR_BGR2RGB)
-                    resultado = DeepFace.analyze(
-                        frame_rgb,
-                        actions=['age'],
-                        enforce_detection=False,
-                        detector_backend='opencv'
-                    )
-                    idade = resultado[0]['age']
-                    calculo = idade * 17734.48
 
-                    frase_label.config(text=(f"Idade estimada: {idade} anos\n"
-                                            f"Imposto calculado com base na idade será de:\n\n"
-                                            f" R$ {calculo:,.2f} pagos na sua vida"))
-                except Exception as e:
-                    frase_label.config(text=f"Erro ao analisar idade: {str(e)}")
-            else:
-                frase_label.config(text="Nenhum frame disponível para análise.")
+            if int(deteccao.score[0] * 100) > 90:
+                tempo_atual = time.time()
+                if tempo_atual - ultimo_tempo_analisado > intervalo_entre_analises:
+                    ultimo_tempo_analisado = tempo_atual
+                    try:
+                        frame_rgb = cv2.cvtColor(ultimo_frame, cv2.COLOR_BGR2RGB)
+                        resultado = DeepFace.analyze(
+                            frame_rgb,
+                            actions=['age'],
+                            enforce_detection=False,
+                            detector_backend='opencv'
+                        )
+                        idade = resultado[0]['age']
+                        calculo = idade * 17734.48
+
+                        frase_label.config(text=(f"Idade estimada: {idade} anos\n"
+                                                f"Imposto calculado com base na idade será de:\n\n"
+                                                f" R$ {calculo:,.2f} pagos na sua vida"))
+                    except Exception as e:
+                        frase_label.config(text=f"Erro ao analisar idade: {str(e)}")
 
     img = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
     imgtk = ImageTk.PhotoImage(image=img)

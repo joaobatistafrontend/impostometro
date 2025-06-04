@@ -46,8 +46,7 @@ class ImpostometroApp:
 
         self.frase_label = tk.Label(
             self.info_frame,
-            text=("Com base nos dados mais recentes, em 2024 os brasileiros pagaram um total de R$ 3,6 trilhões "
-                  "em impostos, taxas e contribuições aos governos federal, estadual e municipal."),
+            text=("Com base nos dados de média de uso com base em pesquisas recentes como da DataReportal, IBGE, Cetic.br e Ofcom (Reino Unido)"),
             font=("Arial", 14),
             wraplength=500,
             justify="left",
@@ -119,22 +118,79 @@ class ImpostometroApp:
             frame_rgb = cvtColor(self.ultimo_frame, COLOR_BGR2RGB)
             lista_idade = []
             for _ in range(5):
+                # resultado = DeepFace.analyze(
+                #     frame_rgb,
+                #     actions=['age'],
+                #     enforce_detection=False,
+                #     detector_backend='opencv'
+                # )
+                # resultado = DeepFace.analyze(
+                #     frame_rgb,
+                #     actions=['age'],
+                #     enforce_detection=True,
+                #     detector_backend='opencv'
+                # )
                 resultado = DeepFace.analyze(
                     frame_rgb,
                     actions=['age'],
-                    enforce_detection=False,
-                    detector_backend='opencv'
+                    enforce_detection=True,
+                    detector_backend='retinaface'
                 )
+
                 idade = resultado[0]['age']
                 lista_idade.append(idade)
 
             idade_frequente = max(set(lista_idade), key=lista_idade.count)
-            calculo = idade_frequente * 35734.48
+            if idade_frequente >= 6 and idade_frequente <= 12:
+                self.frase_label.config(text=(
+                    f"O calculo  de gigas utilizado com base na idade será de:\n\n"
+                    "2g utilizados por mês"
+                    "15g utilizados por mês"
+                    "60g utilizados por mês "
+                ))
 
-            self.frase_label.config(text=(
-                f"Imposto calculado com base na idade será de:\n\n"
-                f"R$ {calculo:,.2f} pagos na sua vida"
-            ))
+            elif idade_frequente >= 13 and idade_frequente <= 17:
+                self.frase_label.config(text=(
+                    f"O calculo  de gigas utilizado com base na idade será de:\n\n"
+                    "4g utilizados por mês"
+                    "28g  utilizados por mês"
+                    "112g  utilizados por mês "
+                ))
+            elif idade_frequente >= 18 and idade_frequente <= 24:
+                self.frase_label.config(text=(
+                    f"O calculo  de gigas utilizado com base na idade será de:\n\n"
+                    "4g utilizados por mês"
+                    "21g  utilizados por mês"
+                    "100g  utilizados por mês "
+                ))
+            elif idade_frequente >= 25 and idade_frequente <= 34:
+                self.frase_label.config(text=(
+                    f"O calculo  de gigas utilizado com base na idade será de:\n\n"
+                    "3g utilizados por mês"
+                    "21g  utilizados por mês"
+                    "60g  utilizados por mês "
+                ))
+            elif idade_frequente >= 35 and idade_frequente <= 49:
+                self.frase_label.config(text=(
+                    f"O calculo  de gigas utilizado com base na idade será de:\n\n"
+                    "2g utilizados por mês"
+                    "17g  utilizados por mês"
+                    "60g  utilizados por mês "
+                ))
+            elif idade_frequente >= 50 and idade_frequente <= 64:
+                self.frase_label.config(text=(
+                    f"O calculo  de gigas utilizado com base na idade será de:\n\n"
+                    "2g utilizados por mês"
+                    "7g  utilizados por mês"
+                    "28g  utilizados por mês "
+                ))
+            elif idade_frequente > 64:
+                self.frase_label.config(text=(
+                    f"O calculo  de gigas utilizado com base na idade será de:\n\n"
+                    "1g utilizados por mês"
+                    "7g  utilizados por mês"
+                    "28g  utilizados por mês "
+                ))
 
         except Exception as e:
             self.frase_label.config(text=f"Erro ao analisar idade: {str(e)}")
